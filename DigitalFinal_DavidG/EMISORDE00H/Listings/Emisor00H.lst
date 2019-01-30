@@ -1,0 +1,173 @@
+A51 MACRO ASSEMBLER  EMISOR00H                                                            06/12/2018 02:18:00 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.5.0
+OBJECT MODULE PLACED IN .\Objects\Emisor00H.obj
+ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE Emisor00H.A51 SET(SMALL) DEBUG PRINT(.\Listings\Emisor00H.lst) OBJECT(.
+                      \Objects\Emisor00H.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+0000                   1     ORG 0
+
+0000 803E              2                                             JMP INICIO
+
+                       3                                             
+
+0003                   4                                             ORG 3h
+
+0003 0187              5                                             JMP INT_0
+
+                       6                                             
+
+0023                   7                                             ORG 23h
+
+0023 805B              8                                             JMP INT_P_S
+
+                       9                                             
+
+0040                  10                                             ORG 40h
+
+0040                  11     INICIO:                         
+
+                      12                     
+
+0040 7900             13                         MOV R1,  #00H
+
+                      14                         
+
+                      15                                          
+
+0042 C28E             16                                             CLR TR1
+
+                      17                                             
+
+                      18                                             
+
+0044 758920           19                                             MOV TMOD, #20h                                     
+                                  ;Timer en modo 2
+
+0047 758801           20                                             MOV TCON, #1h
+
+004A 758DCE           21                                             MOV TH1,  #206                                     
+                                  ;Progaramamos el timer a 9600 baudios
+
+004D 758BCE           22                                             MOV TL1,  #206
+
+                      23                                     
+
+0050 7598C8           24                                             MOV SCON, #11001000b                            ;Mo
+                             do 1
+
+0053 758700           25                                             MOV PCON, #10000000h                               
+                                          ;SMOD=0
+
+0056 758801           26                                             MOV TCON, #00000001b                            ;La
+                              habilitación de la interrupción 0 será por flanco
+
+0059 75A891           27                                             MOV IE, #10010001b                                 
+                                  ;Habilitamos la interupción cero y el puerto serie
+
+005C 75B810           28                                             MOV     IP,     #00010000b                         
+                                          ;Priorizamos el puerto serie
+
+                      29                                             
+
+                      30                                             
+
+                      31                                             
+
+005F                  32     FIN:            
+
+                      33                
+
+005F 309002           34                 JNB P1.0,NoP0       
+
+0062 7900             35                  MOV R1,#00H
+
+0064 309102           36     NoP0:       JNB P1.1,NoP1
+
+0067 7901             37                  MOV R1,#01H
+
+0069 80F4             38     NoP1:        JMP FIN
+
+                      39     
+
+                      40                                             
+
+0080                  41                                             ORG 80h
+
+                      42     
+
+0080                  43     INT_P_S:                        
+
+0080 C299             44                         CLR TI
+
+0082 E4               45                                             CLR A                                              
+                                          
+
+0083 E9               46                                             MOV A, R1                               
+
+0084 F599             47                                             MOV SBUF, A     
+
+                      48                                                             
+
+0086 32               49                                             RETI                            
+
+A51 MACRO ASSEMBLER  EMISOR00H                                                            06/12/2018 02:18:00 PAGE     2
+
+                      50     
+
+0087                  51     INT_0:                          
+
+0087 D28E             52                         SETB TR1
+
+0089 E9               53                                             MOV A,R1
+
+008A F599             54                                             MOV SBUF,A
+
+                      55                         
+
+008C 7A01             56                                             MOV R2,#01H                             
+
+                      57                                                                                                
+                                  
+
+008E 32               58                                             RETI                            
+
+                      59     
+
+                      60     END
+
+A51 MACRO ASSEMBLER  EMISOR00H                                                            06/12/2018 02:18:00 PAGE     3
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+FIN. . . . . . . .  C ADDR   005FH   A   
+IE . . . . . . . .  D ADDR   00A8H   A   
+INICIO . . . . . .  C ADDR   0040H   A   
+INT_0. . . . . . .  C ADDR   0087H   A   
+INT_P_S. . . . . .  C ADDR   0080H   A   
+IP . . . . . . . .  D ADDR   00B8H   A   
+NOP0 . . . . . . .  C ADDR   0064H   A   
+NOP1 . . . . . . .  C ADDR   0069H   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+PCON . . . . . . .  D ADDR   0087H   A   
+SBUF . . . . . . .  D ADDR   0099H   A   
+SCON . . . . . . .  D ADDR   0098H   A   
+TCON . . . . . . .  D ADDR   0088H   A   
+TH1. . . . . . . .  D ADDR   008DH   A   
+TI . . . . . . . .  B ADDR   0098H.1 A   
+TL1. . . . . . . .  D ADDR   008BH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR1. . . . . . . .  B ADDR   0088H.6 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

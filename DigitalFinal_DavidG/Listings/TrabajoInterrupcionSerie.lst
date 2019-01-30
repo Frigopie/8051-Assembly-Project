@@ -1,0 +1,965 @@
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.5.0
+OBJECT MODULE PLACED IN .\Objects\TrabajoInterrupcionSerie.obj
+ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE TrabajoInterrupcionSerie.A51 SET(SMALL) DEBUG PRINT(.\Listings\TrabajoI
+                      nterrupcionSerie.lst) OBJECT(.\Objects\TrabajoInterrupcionSerie.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     
+
+                       2     
+
+  0090                 3     LUZ equ P1.0
+
+  0091                 4     BUZZ equ P1.1
+
+                       5             
+
+                       6             
+
+                       7             
+
+                       8             
+
+                       9             
+
+                      10             
+
+                      11             
+
+                      12         
+
+                      13             
+
+                      14     
+
+0000                  15                     ORG 00H 
+
+0000 2100             16                     JMP INICIORESET
+
+                      17     
+
+                      18     
+
+0003                  19            ORG 0003H
+
+0003 2163             20                JMP INT_0 
+
+                      21               
+
+                      22     
+
+                      23          
+
+0013                  24               ORG 0013H
+
+0013 216F             25               JMP INT_1               
+
+                      26     
+
+                      27     
+
+000B                  28            ORG 000BH
+
+000B 2176             29            JMP INT_T0
+
+                      30                
+
+                      31                      
+
+                      32     
+
+0023                  33          ORG 0023H
+
+0023 21D6             34           JMP INT_SERIE              
+
+                      35                      
+
+                      36     
+
+                      37     
+
+                      38           
+
+                      39                
+
+                      40     
+
+                      41     
+
+                      42             
+
+                      43             ;---------;
+
+0100                  44     org 100H
+
+                      45     
+
+                      46     
+
+                      47     
+
+0100                  48     INICIORESET:
+
+                      49     
+
+0100 C299             50             CLR TI
+
+0102 C298             51                     CLR RI
+
+0104 75B800           52                     MOV IP, #0
+
+0107 759800           53                     MOV SCON,#0
+
+010A C28E             54                     CLR TR1
+
+010C C28C             55                     CLR TR0
+
+010E 758D00           56                     MOV TH1,#0
+
+0111 758B00           57                     MOV TL1,#0
+
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     2
+
+                      58                              
+
+0114 7C00             59              MOV R4,#0 
+
+0116 7DFF             60              MOV R5, #255 
+
+0118 7F00             61                      Mov R7, #0
+
+011A 7E00             62                      mov r6, #0
+
+011C 7900             63                      MOV R1, #0
+
+011E 7A00             64                      MOV R2, #0
+
+0120 7B00             65                      MOV r3, #0
+
+0122 7800             66                      MOV R0, #0
+
+                      67             
+
+                      68                     
+
+0124 C291             69                     CLR BUZZ                 
+
+                      70        
+
+0126 D290             71     INICIO: SETB LUZ
+
+0128 8002             72     JMP ESTADOLUZ   
+
+012A C290             73     LUZAPAGADA: CLR LUZ
+
+                      74                      
+
+012C                  75     ESTADOLUZ:         
+
+                      76             
+
+012C 75A881           77                     MOV IE,   #10000001b   
+
+012F 758805           78             MOV TCON, #00000101b  
+
+0132 758916           79                     MOV TMOD, #00010110b  
+
+                      80                                         
+
+0135 758C9C           81             MOV  TH0, #156         
+
+0138 758A9D           82                     MOV      TL0, #157  
+
+                      83        
+
+                      84      
+
+013B 5134             85     CALL LCD_PRINCIPIO
+
+                      86     
+
+013D 907000           87              MOV DPTR, #7000h
+
+0140 858260           88              MOV 60H,DPL
+
+0143 858361           89              MOV 61H,DPH
+
+                      90              
+
+                      91     
+
+0146                  92     BUCLE: 
+
+                      93     
+
+0146 BE0002           94     CJNE R6,#0,SEPULSAP1
+
+0149 80FB             95     JMP BUCLE
+
+                      96         
+
+014B                  97     SEPULSAP1:
+
+                      98     
+
+014B 51A7             99     CALL LCD_APAGAR
+
+                     100     
+
+                     101     
+
+                     102     
+
+014D BC0053          103     CJNE R4,#0, TRANSMISION  
+
+                     104     
+
+0150 B290            105     PARPADEO:      CPL  LUZ    ;Rutina de tiempo que enciende y apaga LUZ
+
+0152 7904            106         MOV R1,#4
+
+0154 7AFA            107     S1: MOV R2, #250   
+
+0156 7BFA            108     S2: MOV R3, #250
+
+0158 DBFE            109     S3: DJNZ R3, S3
+
+015A DAFA            110         DJNZ R2, S2
+
+015C D9F6            111         DJNZ R1, S1
+
+                     112             
+
+015E BC00C9          113             CJNE R4,#0, LUZAPAGADA
+
+                     114             
+
+0161 80ED            115             JMP PARPADEO
+
+                     116     
+
+                     117     
+
+0163                 118     INT_0:  
+
+                     119                
+
+0163 7E01            120                             MOV R6,#01h   
+
+0165 BC0006          121             CJNE R4,#0,SALIRINT0
+
+0168 75A886          122             MOV IE, #10000110b  
+
+016B 75B804          123             MOV IP, #00000100b  
+
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     3
+
+                     124        
+
+                     125                     
+
+016E 32              126     SALIRINT0: RETI
+
+                     127     
+
+                     128     
+
+                     129     
+
+016F                 130     INT_1:   
+
+                     131            
+
+016F 758855          132                MOV TCON, #01010101b ; // Nos activa el temporizador1 por software, y nos detect
+                             a por flanco
+
+0172 75A882          133            MOV IE, #10000010b     ; Nos activamos las interrupciones T1 y T0, pero las externas
+                              las quitamos
+
+                     134                
+
+0175 32              135     RETI
+
+                     136                     
+
+                     137     
+
+                     138     
+
+0176                 139     INT_T0:           
+
+                     140         
+
+0176 858270          141                MOV 70H,DPL 
+
+0179 858371          142                MOV 71H,DPH   
+
+                     143               
+
+017C 856082          144               MOV DPL,60h        
+
+017F 856183          145               MOV DPH,61h
+
+                     146          
+
+0182 E58B            147               MOV A,TL1
+
+0184 F0              148               MOVX @DPTR, A 
+
+0185 A3              149               INC DPTR
+
+0186 E58D            150               MOV A,TH1
+
+0188 F0              151               MOVX @DPTR,A
+
+0189 A3              152               INC DPTR
+
+                     153             
+
+                     154     
+
+018A 858260          155               MOV 60H,DPL
+
+018D 858361          156               MOV 61H,DPH
+
+                     157               
+
+0190 758B18          158               MOV TL1,#18h  
+
+0193 758D00          159               MOV TH1,#0
+
+                     160               
+
+                     161               
+
+                     162               
+
+0196 DD04            163               DJNZ R5,SEGUIRCONTANDO
+
+                     164           
+
+0198 7C01            165               MOV R4,#1          
+
+019A 7E00            166               MOV R6,#0
+
+                     167              
+
+                     168             
+
+019C                 169     SEGUIRCONTANDO: 
+
+                     170             
+
+019C 857082          171                     MOV DPL,70h
+
+019F 857183          172                 MOV DPH,71h
+
+                     173     
+
+01A2 32              174                     RETI
+
+                     175      
+
+                     176                             
+
+                     177     
+
+                     178      
+
+                     179      
+
+                     180     
+
+01A3                 181     TRANSMISION:
+
+                     182           
+
+                     183               
+
+                     184                     
+
+01A3 758780          185             MOV PCON, #10000000B  
+
+01A6 758DCE          186         MOV TH1,  #206  
+
+01A9 758BCE          187             MOV TL1, #206
+
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     4
+
+01AC 7598E8          188             MOV SCON, #11101000b  
+
+                     189             
+
+                     190      
+
+                     191     
+
+01AF 907000          192         MOV DPTR, #7000h  
+
+                     193                     
+
+01B2 7A01            194             MOV R2,#1
+
+01B4 79FF            195             MOV R1,#255 
+
+01B6 758801          196               MOV TCON , #01H       
+
+01B9 758920          197           MOV TMOD,#00100000B  
+
+                     198     
+
+01BC 75A890          199           MOV IE,#10010000B
+
+                     200             
+
+01BF D28E            201             SETB TR1
+
+                     202             
+
+01C1 E4              203              CLR A                                                          ;Borramos el acumul
+                             ador
+
+01C2 E0              204          MOVX A, @DPTR                                      ;Copiamos el DPTR al acumulador
+
+01C3 A3              205              INC DPTR
+
+01C4 F599            206              MOV SBUF, A                                                    ;Copiamos en el SBU
+                             F el acumulador (
+
+                     207                          
+
+                     208     
+
+01C6 B900FD          209     BUCLET: CJNE R1,#0,BUCLET
+
+01C9 BA0006          210             CJNE R2,#0,CARGA_R1
+
+                     211     
+
+                     212     
+
+                     213     
+
+01CC 7805            214       MOV R0,#5H
+
+01CE 5134            215      CALL LCD_PRINCIPIO
+
+01D0 8018            216        JMP RECEPCION
+
+                     217              
+
+                     218             
+
+01D2                 219     CARGA_R1:
+
+01D2 79FF            220             MOV R1,#255 
+
+01D4 80F0            221             JMP BUCLET              
+
+                     222     
+
+                     223     
+
+                     224     
+
+01D6                 225     INT_SERIE:
+
+                     226          
+
+01D6 C299            227              CLR TI
+
+01D8 E4              228              CLR A
+
+                     229              
+
+01D9 D908            230              DJNZ R1,RETISERIE
+
+01DB DA06            231              DJNZ R2,RETISERIE
+
+                     232      
+
+01DD EF              233         MOV A,R7   
+
+01DE F599            234             MOV SBUF,A
+
+                     235     
+
+01E0 C28E            236             CLR TR1
+
+01E2 32              237           RETI
+
+                     238     
+
+                     239     
+
+01E3                 240     RETISERIE:  
+
+                     241          
+
+01E3 E0              242          MOVX A,@DPTR
+
+01E4 A3              243          INC DPTR
+
+01E5 F599            244              MOV SBUF,A
+
+01E7 6F              245              XRL A,R7
+
+01E8 FF              246          MOV R7,A    
+
+                     247      
+
+01E9 32              248                       RETI
+
+                     249     
+
+                     250     
+
+                     251     
+
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     5
+
+                     252     
+
+                     253              
+
+                     254     
+
+                     255                     
+
+01EA                 256     RECEPCION:
+
+                     257     
+
+01EA C298            258           CLR RI
+
+01EC 758920          259     MOV TMOD,#00100000b
+
+01EF 758DCE          260     MOV TH1, #206
+
+01F2 758BCE          261     MOV TL1, #206
+
+01F5 7598D4          262     MOV SCON,#11010100b   
+
+01F8 758780          263     MOV PCON,#10000000b
+
+01FB 75A800          264     MOV     IE, #0
+
+01FE D28E            265             SETB TR1
+
+                     266                                     ;Habilitamos la recepción EN MODO 1 SIN BIT
+
+0200 758780          267             MOV PCON, #80h                                  ;SMOD=0
+
+                     268                                     ;Cargamos el puntero
+
+                     269     
+
+                     270     
+
+                     271     
+
+0203 3098FD          272     COMPRUEBA_RI: JNB RI,COMPRUEBA_RI
+
+                     273     
+
+                     274     
+
+0206 E599            275     MOV A,SBUF
+
+0208 C298            276     CLR RI
+
+020A C28E            277     CLR TR1
+
+                     278     
+
+020C B40002          279     CJNE A,#00H, PITAR
+
+020F 2100            280     JMP INICIORESET 
+
+                     281     
+
+                     282     
+
+0211                 283     PITAR:
+
+                     284     
+
+                     285     
+
+                     286     
+
+                     287     
+
+                     288     
+
+0211 7804            289       MOV R0,#4H
+
+0213 5134            290      CALL LCD_PRINCIPIO
+
+                     291     
+
+0215 758901          292     MOV TMOD, #00000001B
+
+                     293     
+
+0218 D291            294     VOLVER: SETB BUZZ
+
+021A 5122            295             CALL FRECUENCIA
+
+021C C291            296             CLR BUZZ
+
+021E 5122            297             CALL FRECUENCIA
+
+0220 80F6            298             JMP VOLVER
+
+                     299     
+
+0222 758CFF          300     FRECUENCIA: MOV TH0,#0FFH         
+
+0225 758A06          301                 MOV TL0,#006H          
+
+0228 D28C            302                 SETB TR0
+
+                     303                
+
+                     304                              
+
+022A 308DFD          305     RECARGA:    JNB TF0,RECARGA        
+
+022D C28C            306                 CLR TR0
+
+022F C28D            307                 CLR TF0
+
+                     308                 
+
+0231 D291            309                             SETB BUZZ
+
+0233 22              310                                     RET                  
+
+                     311           
+
+                     312               
+
+                     313             
+
+                     314             
+
+0234                 315     LCD_PRINCIPIO: 
+
+0234 5179            316             CALL RETARDO
+
+0236 7430            317             MOV A,#30H   
+
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     6
+
+0238 5182            318             CALL INST_RET
+
+023A 7430            319             MOV A,#30H
+
+023C 5182            320             CALL INST_RET
+
+023E 7430            321             MOV A,#30H
+
+0240 5189            322             CALL INST_BUF
+
+0242 7430            323             MOV A,#30H
+
+0244 5189            324             CALL INST_BUF
+
+0246 7408            325             MOV A,#08H      
+
+0248 5189            326             CALL INST_BUF
+
+024A 7401            327             MOV A,#01H         
+
+024C 5189            328             CALL INST_BUF
+
+024E 7406            329             MOV A,#06H
+
+0250 5189            330             CALL INST_BUF
+
+0252 740F            331             MOV A,#0FH       
+
+0254 5189            332             CALL INST_BUF        
+
+                     333     
+
+0256 B80007          334       CJNE R0,#0, SEGUNDOMENS
+
+                     335         
+
+0259 900030          336             MOV  DPTR, #030H  
+
+025C 7913            337         MOV R1,#19
+
+025E 8011            338             JMP TEXTO
+
+                     339     
+
+0260                 340     SEGUNDOMENS:
+
+0260 B80402          341     CJNE R0,#04H,AQUI
+
+0263 8007            342     JMP TERCERMENS
+
+                     343     
+
+0265 902500          344     AQUI:MOV DPTR, #2500h
+
+0268 790D            345     MOV R1, #13
+
+026A 8005            346     JMP TEXTO
+
+                     347     
+
+026C                 348     TERCERMENS:
+
+026C 790E            349     MOV R1,#14
+
+026E 902600          350     MOV DPTR,#2600H
+
+                     351     
+
+0271                 352     TEXTO:    
+
+0271 E4              353                     CLR A
+
+0272 93              354                     MOVC A, @ A+DPTR
+
+0273 A3              355                     INC DPTR
+
+0274 5190            356                     CALL ESC_DATO
+
+                     357            
+
+0276 D9F9            358             DJNZ R1,TEXTO  
+
+                     359             
+
+                     360                 
+
+                     361                     
+
+0278 22              362                             RET             
+
+                     363              
+
+                     364     
+
+                     365     
+
+0279                 366     RETARDO:  
+
+                     367     
+
+                     368     
+
+0279 7AFA            369      MOV R2,#250
+
+027B 7BFA            370     T_2: MOV R3, #250
+
+027D DBFE            371     T_1:DJNZ R3,T_1
+
+027F DAFA            372         DJNZ R2,T_2
+
+                     373             
+
+0281 22              374                     RET     
+
+                     375     
+
+0282                 376     INST_RET: 
+
+0282 904000          377         MOV DPTR,#4000H
+
+0285 F0              378         MOVX @DPTR,A
+
+0286 5179            379         CALL RETARDO        
+
+0288 22              380                     RET
+
+                     381     
+
+0289                 382     INST_BUF: 
+
+0289 904000          383         MOV DPTR, #4000H
+
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     7
+
+028C F0              384             MOVX @DPTR,A    
+
+028D 519F            385      CALL CHECK_BUF
+
+028F 22              386                     RET
+
+                     387     
+
+0290                 388     ESC_DATO:
+
+                     389         
+
+0290 AA82            390             MOV R2,DPL
+
+0292 AB83            391             MOV R3,DPH
+
+0294 904001          392             MOV DPTR,#4001H
+
+0297 F0              393             MOVX @DPTR,A
+
+0298 519F            394             CALL CHECK_BUF
+
+029A 8A82            395             MOV DPL,R2
+
+029C 8B83            396             MOV DPH,R3
+
+029E 22              397             RET
+
+                     398            
+
+                     399       
+
+029F                 400     CHECK_BUF:
+
+029F 904002          401     MOV DPTR, #4002H
+
+02A2 E0              402     F1: MOVX A,@DPTR
+
+02A3 20E7FC          403        JB ACC.7, F1
+
+02A6 22              404             RET
+
+                     405     
+
+02A7                 406     LCD_APAGAR:
+
+                     407     
+
+                     408             
+
+02A7 5189            409             CALL INST_BUF
+
+02A9 7401            410             MOV A,#01H         
+
+02AB 5189            411             CALL INST_BUF
+
+02AD 7406            412             MOV A,#06H
+
+02AF 5189            413             CALL INST_BUF
+
+02B1 740F            414             MOV A,#0FH       
+
+                     415             
+
+02B3 22              416                      RET
+
+                     417      
+
+                     418     
+
+0030                 419     ORG 030H
+
+0030 50756C73        420                             DB 'Pulse el boton 1'  
+
+0034 6520656C                
+0038 20626F74                
+003C 6F6E2031                
+2500                 421     ORG 2500H
+
+2500 45737065        422                 DB 'Esperando 00H'   
+
+2504 72616E64                
+2508 6F203030                
+250C 48                      
+                     423     
+
+2600                 424     ORG 2600H
+
+2600 416C6172        425                     DB 'Alarma Bip-Bip'  
+
+2604 6D612042                
+2608 69702D42                
+260C 6970                    
+                     426     END
+
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     8
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+ACC. . . . . . . .  D ADDR   00E0H   A   
+AQUI . . . . . . .  C ADDR   0265H   A   
+BUCLE. . . . . . .  C ADDR   0146H   A   
+BUCLET . . . . . .  C ADDR   01C6H   A   
+BUZZ . . . . . . .  B ADDR   0090H.1 A   
+CARGA_R1 . . . . .  C ADDR   01D2H   A   
+CHECK_BUF. . . . .  C ADDR   029FH   A   
+COMPRUEBA_RI . . .  C ADDR   0203H   A   
+DPH. . . . . . . .  D ADDR   0083H   A   
+DPL. . . . . . . .  D ADDR   0082H   A   
+ESC_DATO . . . . .  C ADDR   0290H   A   
+ESTADOLUZ. . . . .  C ADDR   012CH   A   
+F1 . . . . . . . .  C ADDR   02A2H   A   
+FRECUENCIA . . . .  C ADDR   0222H   A   
+IE . . . . . . . .  D ADDR   00A8H   A   
+INICIO . . . . . .  C ADDR   0126H   A   
+INICIORESET. . . .  C ADDR   0100H   A   
+INST_BUF . . . . .  C ADDR   0289H   A   
+INST_RET . . . . .  C ADDR   0282H   A   
+INT_0. . . . . . .  C ADDR   0163H   A   
+INT_1. . . . . . .  C ADDR   016FH   A   
+INT_SERIE. . . . .  C ADDR   01D6H   A   
+INT_T0 . . . . . .  C ADDR   0176H   A   
+IP . . . . . . . .  D ADDR   00B8H   A   
+LCD_APAGAR . . . .  C ADDR   02A7H   A   
+LCD_PRINCIPIO. . .  C ADDR   0234H   A   
+LUZ. . . . . . . .  B ADDR   0090H.0 A   
+LUZAPAGADA . . . .  C ADDR   012AH   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+PARPADEO . . . . .  C ADDR   0150H   A   
+PCON . . . . . . .  D ADDR   0087H   A   
+PITAR. . . . . . .  C ADDR   0211H   A   
+RECARGA. . . . . .  C ADDR   022AH   A   
+RECEPCION. . . . .  C ADDR   01EAH   A   
+RETARDO. . . . . .  C ADDR   0279H   A   
+RETISERIE. . . . .  C ADDR   01E3H   A   
+RI . . . . . . . .  B ADDR   0098H.0 A   
+S1 . . . . . . . .  C ADDR   0154H   A   
+S2 . . . . . . . .  C ADDR   0156H   A   
+S3 . . . . . . . .  C ADDR   0158H   A   
+SALIRINT0. . . . .  C ADDR   016EH   A   
+SBUF . . . . . . .  D ADDR   0099H   A   
+SCON . . . . . . .  D ADDR   0098H   A   
+SEGUIRCONTANDO . .  C ADDR   019CH   A   
+SEGUNDOMENS. . . .  C ADDR   0260H   A   
+SEPULSAP1. . . . .  C ADDR   014BH   A   
+TCON . . . . . . .  D ADDR   0088H   A   
+TERCERMENS . . . .  C ADDR   026CH   A   
+TEXTO. . . . . . .  C ADDR   0271H   A   
+TF0. . . . . . . .  B ADDR   0088H.5 A   
+TH0. . . . . . . .  D ADDR   008CH   A   
+TH1. . . . . . . .  D ADDR   008DH   A   
+TI . . . . . . . .  B ADDR   0098H.1 A   
+TL0. . . . . . . .  D ADDR   008AH   A   
+TL1. . . . . . . .  D ADDR   008BH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+TR1. . . . . . . .  B ADDR   0088H.6 A   
+TRANSMISION. . . .  C ADDR   01A3H   A   
+T_1. . . . . . . .  C ADDR   027DH   A   
+A51 MACRO ASSEMBLER  TRABAJOINTERRUPCIONSERIE                                             06/12/2018 02:17:47 PAGE     9
+
+T_2. . . . . . . .  C ADDR   027BH   A   
+VOLVER . . . . . .  C ADDR   0218H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

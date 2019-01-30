@@ -1,0 +1,396 @@
+// Nuevo Proyecto//
+// EQUS DE PUERTOS//
+LUZ equ P1.0
+BUZZ equ P1.1
+	
+	//
+	//AQUI APUNTO REGISTROS PARA ACORDARME//
+	//R1 y R2, R3 para la luz que parpadea
+	// R4 es booleano para ver si ha habido transmision o no
+	// R5 es el seguir contado, 256 valores
+	// R6, para que cuando se haya entrado en la interrupcion, se altere
+    // R7, el registro donde se va a guardar la xor
+	
+// Inicio tras el reset
+		ORG 00H	
+		JMP INICIORESET
+// iNTERRUPCION 0 LA DEL P0.1
+
+       ORG 0003H
+	   JMP INT_0 
+	  
+// INTERRUPCION 1 PARA ACTIVAR TIMER
+     
+	  ORG 0013H
+	  JMP INT_1		  
+
+// INTERRUPCION TIMER 0, contador
+       ORG 000BH
+       JMP INT_T0
+ 	   
+		 
+// INTERRUPCION TIMER 1, temporizador
+      //No se da como interrupcion
+		 
+
+// INTERRUPCION SERIAL
+     //  ORG 0023H
+	 //  JMP INT_SERIE
+	 // Es una estupidez tener un programa comprobando las flags, mientras
+	 // podria estar en otra funcion, pero como en este caso no nos afecta lo hacemos sin 
+	 // usar la interrupcion ya que no es necesaria.
+// MENSAJES
+      
+	   
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	 
+	// INICIO
+	;---------;
+org 100H
+
+
+
+INICIORESET:
+       			 
+         MOV R4,#0 
+         MOV R5, #255 
+		 Mov R7, #0
+		 mov r6,#0
+        CLR BUZZ    		 
+   
+
+ 
+ INICIO: SETB LUZ
+JMP ESTADOLUZ  // Como hay 2 funciones que pasan por condicones iniciales (LCD y mismas interrupciones)      
+LUZAPAGADA: CLR LUZ
+	   	 
+ESTADOLUZ:        // Aqui estara la luz encendida o no en funcion de si ha ocurrido transmision o no
+        
+		MOV IE,   #10000001b  // Activada solo la interrupcion de pulsador
+        MOV TCON, #00000101b // Activada por flanco la IE0 // Borra las flags al vole
+		MOV TMOD, #00010110b // Timer 1: software, modo temporizador 16b
+		                    //  Timer 0: a pulso, modo contador, autorecarga cada 100pulsos
+        MOV  TH0, #156        // 256-156= 100+
+		MOV	 TL0, #157 // POR QUE NOS COMEMOS 1 solo al principio
+     
+CALL LCD_PRINCIPIO
+
+	 MOV DPTR, #7000h
+	 MOV 60H,DPL
+	 MOV 61H,DPH
+	 
+
+BUCLE: 
+
+CJNE R6,#0,SEPULSAP1
+JMP BUCLE
+    
+SEPULSAP1:
+
+CALL LCD_APAGAR
+
+
+
+CJNE R4,#0, TRANSMISION  
+
+PARPADEO:      CPL  LUZ    ;Rutina de tiempo que enciende y apaga LUZ
+    MOV R1,#4
+S1: MOV R2, #250  // Es  para
+S2: MOV R3, #250
+S3: DJNZ R3, S3
+    DJNZ R2, S2
+    DJNZ R1, S1
+	
+	CJNE R4,#0, LUZAPAGADA
+	
+	JMP PARPADEO
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-
+
+INT_0:  
+	   
+		MOV R6,#01h  //, para que cuando salga de la interrupcion, vaya al parpadeo
+        CJNE R4,#0,SALIRINT0
+        MOV IE, #10000110b // Apagamos el INT 0 para que no vuelva a entrar, y solo activamos INT 1 , y el timer 0 (contador), para cuando llegue el pulso
+        MOV IP, #00000100b // EXT 1 que tenga PRIORIDAD frente a el contador.
+   
+        	
+SALIRINT0: RETI
+
+
+///////////////////////////////////////////////////////////////////
+INT_1:  // Aqui llega el primer flanco de del dato, activandonos el temporizador de 60ms
+       
+	   MOV TCON, #01010101b ; // Nos activa el temporizador1 por software, y nos detecta por flanco
+       MOV IE, #10000010b     ; Nos activamos las interrupciones T1 y T0, pero las externas las quitamos
+	   
+RETI
+
+		
+////- INTERRUPCION MODO CONTADOR // CUANDO LLEGA A 100
+
+INT_T0:          // Esta interrupcion ocurre cuando hay 100 pulsos
+    
+	   MOV 70H,DPL 
+	   MOV 71H,DPH
+	  
+	  MOV DPL,60h
+	   MOV DPH,61h
+     
+	 MOV A,TL1
+	  MOVX @DPTR, A 
+	  INC DPTR
+	  MOV A,TH1
+	  MOVX @DPTR,A
+	  INC DPTR
+	
+
+	  MOV 60H,DPL
+	  MOV 61H,DPH
+	  
+	  MOV TL1,#16h //0 el tiempo que ha pasado en esta interrupcion
+	  MOV TH1,#0
+	  
+ 	  
+	  
+	  DJNZ R5,SEGUIRCONTANDO
+      
+	  MOV R4,#1         // Asi ocurrira transmision
+	  MOV R6,#0
+	 
+	
+
+SEGUIRCONTANDO:	
+        
+		MOV DPL,70h
+	    MOV DPH,71h
+
+		RETI
+ 
+	 		
+
+ 
+ //////     ////////////////////////  TRANSMISION                    //////////////////////////////////        ///////
+
+TRANSMISION: 
+       
+   
+
+        
+		//MOV PCON, #10000000B //ENCENDIENDO EL smod
+		//MOV TH1,  #206 // Baud RATE 1250
+		//MOV SCON, #11001000b //////transmision en modo 3 con un bit 1 como noveno bit ( dos bit de stop))
+		
+		MOV DPTR, #7000h // EL LCD NOS HA PODIDO PISAR 
+	
+       MOV TMOD, # 00100000B // MODO AUTORECARGA TIMER 1
+    
+	 
+	  MOV TH1,#-3H
+	  MOV SCON, #50H // 1 BIT DE STOP, 8BIT Y REN
+		
+		SETB TR1
+
+         
+		 MOV R2,#1
+CARGA_R1:MOV R1,#255
+
+SEGUIRT: 
+
+        CLR A
+	    MOVC A,@A+DPTR
+		
+		//MOV 65H,A
+		//XRL A,R7
+		//MOV R7,A
+		//MOV A,65H
+	    
+	  CALL TRANSMITE 
+      
+	   INC DPTR
+	   DJNZ R1,SEGUIRT
+       DJNZ R2,CARGA_R1	
+		
+	 MOV A,R7
+	 CALL TRANSMITE
+	
+	  MOV R0,#1 // ASI NOS MANDARA EL SEGUNDO MENSAJE
+    
+	  CALL LCD_PRINCIPIO
+	
+	JMP RECEPCION	
+	  
+
+ 
+ TRANSMITE: MOV SBUF,A
+ SIGUE: JNB TI,SIGUE
+ CLR TI
+ RET
+ 
+
+
+	 
+//////////////////////////// RECEPCION + BUZZER ////////////////////////
+		
+RECEPCION:
+MOV TMOD,#00100000b
+MOV TH1, #206
+MOV TL1, #206
+MOV SCON,#11010100b  /// Recepcion
+MOV PCON,#10000000b
+
+COMPRUEBA_RI: JNB RI,COMPRUEBA_RI
+
+
+MOV A,SBUF
+CLR RI
+
+CJNE A,#00H, PITAR
+JMP PITAR  // AQUI LO HE FORZADO PARA QUE PITE, ya que no podemos mandarle un 00h
+//JMP INICIORESET  // PARA QUE ENTRE EL PITIDO, DARLE A EL INTERRUPTOR SUPERIOR
+
+
+PITAR:
+
+// PARA QUE SE PUEDA LEER EL MENSAJE DE 00H, ESTO ES MUY INNECESARIO
+
+
+MOV R0,#4H
+CALL LCD_PRINCIPIO
+
+MOV TMOD, #00000001B
+
+VOLVER: SETB BUZZ
+        CALL FRECUENCIA
+        CLR BUZZ
+        CALL FRECUENCIA
+        JMP VOLVER
+
+FRECUENCIA: MOV TH0,#0FFH        // 65536- 250 cada uno = 65286
+            MOV TL0,#006H         // FF06= 65286
+            SETB TR0
+           
+			 
+RECARGA:    JNB TF0,RECARGA       // Se queda dando vueltas hasta ver la flag
+            CLR TR0
+            CLR TF0
+            
+			SETB BUZZ
+				RET                 //  Volvera a la linea original del programa grande donde mirara si hay reset
+      
+	  /////////////////////////////////////LCD INICIO MAS FUNCIONES////////////////////////////////
+	//////
+	
+
+
+
+LCD_PRINCIPIO: 
+	CALL RETARDO
+	MOV A,#30H  // 03-> Funcion set con 8bits de dato, 1 linea y fuente normal
+	CALL INST_RET
+	MOV A,#30H
+	CALL INST_RET
+	MOV A,#30H
+	CALL INST_BUF
+	MOV A,#30H
+	CALL INST_BUF
+	MOV A,#08H     //CLEAR AGAIN
+	CALL INST_BUF
+	MOV A,#01H        //CLEAR
+	CALL INST_BUF
+	MOV A,#06H
+	CALL INST_BUF
+	MOV A,#0FH      // ON, VISIBLE Y PARPADEA
+	CALL INST_BUF       /// A PARTIR DE AQUI ESCRIBIMO COSA
+
+  CJNE R0,#0, SEGUNDOMENS
+    
+	MOV  DPTR, #030H //donde esta nuestro DB
+    MOV R1,#19
+	JMP TEXTO
+
+SEGUNDOMENS:
+CJNE R0,#04H,AQUI
+JMP TERCERMENS
+
+AQUI:MOV DPTR, #2500h
+MOV R1, #13
+JMP TEXTO
+
+TERCERMENS:
+MOV R1,#14
+MOV DPTR,#2600H
+
+TEXTO:    
+		CLR A
+		MOVC A, @ A+DPTR
+		INC DPTR
+		CALL ESC_DATO
+       
+        DJNZ R1,TEXTO //18 datos
+	
+		
+			RET		
+         
+///////////////////////////fUNCIONES LCD////
+
+RETARDO: // 20MS
+
+
+ MOV R2,#250
+T_2: MOV R3, #250
+T_1:DJNZ R3,T_1
+    DJNZ R2,T_2
+	
+		RET	
+
+INST_RET: 
+    MOV DPTR,#4000H
+    MOVX @DPTR,A
+    CALL RETARDO	
+		RET
+
+INST_BUF: 
+    MOV DPTR, #4000H
+	MOVX @DPTR,A	
+ CALL CHECK_BUF
+		RET
+
+ESC_DATO:
+    
+	MOV R2,DPL
+	MOV R3,DPH
+ 	MOV DPTR,#4001H
+	MOVX @DPTR,A
+	CALL CHECK_BUF
+	MOV DPL,R2
+	MOV DPH,R3
+	RET
+       
+  
+CHECK_BUF:
+MOV DPTR, #4002H
+F1: MOVX A,@DPTR
+   JB ACC.7, F1
+	RET
+///////////////////
+LCD_APAGAR:
+
+	
+	CALL INST_BUF
+	MOV A,#01H        //CLEAR
+	CALL INST_BUF
+	MOV A,#06H
+	CALL INST_BUF
+	MOV A,#0FH      // ON, VISIBLE Y PARPADEA
+	
+		 RET
+ ////////////////////////////////LCD COMO MEMORIA EXTERNA RECORDAR QUE ESTA EN 000010000000... de memoria////////////////////////////////
+
+ORG 030H
+			DB 'Pulse el boton 1' //18letras
+ORG 2500H
+            DB 'Esperando 00H' 	//13letras				
+
+ORG 2600H
+	        DB 'Alarma Bip-Bip' //14letras
+END

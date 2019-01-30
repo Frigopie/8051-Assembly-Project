@@ -1,0 +1,3 @@
+".\Objects\TrabajoInterrupcionSerie.obj" 
+TO ".\Objects\Transmision_Interrupcion" 
+PRINT(".\Listings\Transmision_Interrupcion.m51")

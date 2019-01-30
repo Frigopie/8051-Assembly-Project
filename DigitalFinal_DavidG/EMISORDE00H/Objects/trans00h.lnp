@@ -1,0 +1,3 @@
+".\Objects\Emisor00H.obj" 
+TO ".\Objects\trans00h" 
+PRINT(".\Listings\trans00h.m51")
